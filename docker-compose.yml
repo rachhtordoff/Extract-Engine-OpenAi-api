@@ -1,0 +1,47 @@
+x-access-gunicorn: &default-gunicorn
+  gunicorn --bind 0.0.0.0:8010 --access-logfile - src:app --reload
+
+version: '3.8'
+services:
+  app:
+    build:
+      context: .
+      target: final
+    ports:
+     - "8010:8010"
+    volumes:
+     - .:/opt
+    environment:
+     - POSTGRES_USER=db_user
+     - POSTGRES_PASSWORD=password
+     - POSTGRES_DB=user_db
+     - POSTGRES_HOST=postgres
+     - POSTGRES_PORT=5432
+    env_file:
+      - .env
+    labels:
+      - "traefik.http.routers.app.rule=Host(`app.docker.localhost`)"
+    command: *default-gunicorn
+
+  postgres:
+    image: postgres:9.6
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=db_user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./tables:/docker-entrypoint-initdb.d/
+      - ./data:/var/lib/postgresql/data
+    
+  reverse-proxy:
+    image: traefik:v2.9
+    command: --api.insecure=true --providers.docker
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+volumes:
+  db-data:
