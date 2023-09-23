@@ -4,9 +4,12 @@ Flask-Migrate==4.0.2
 psycopg2-binary==2.9.5
 gunicorn==20.1.0
 Flask-JWT-Extended
-langchain
-openapi
+pydantic==1.10.9
+langchain==0.0.229
+langchainplus-sdk==0.0.20
 pandas
 requests
 numpy
 scikit-learn
+pypdf2
+openai

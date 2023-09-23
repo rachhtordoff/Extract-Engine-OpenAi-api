@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM python:latest
 MAINTAINER Rachael Tordoff
 
 
@@ -10,6 +10,7 @@ copy requirements.txt /opt/requirements.txt
 copy requirements_test.txt /opt/requirements_test.txt
 RUN pip3 install -q -r /opt/requirements.txt && \
     pip3 install -q -r /opt/requirements_test.txt
+    
 
 COPY / /opt/
 

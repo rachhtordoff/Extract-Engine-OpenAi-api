@@ -1,28 +1,43 @@
-from longchain.llms import OpenAi
-from longchain.prompts import ChatPromptTemplate
-from longchain.chat_models import ChatOpenAI
-from longchain.chains import LLMChain
-from longchain.chains import SimpleSequentialChain
+from langchain.llms import OpenAI
+from langchain.prompts import ChatPromptTemplate
+from langchain.chat_models import ChatOpenAI
+from langchain.chains import LLMChain
+from langchain.chains import SimpleSequentialChain
+from langchain.chains import create_extraction_chain
+from src.config import Config
+from typing import List
 
+def call_bank_statement(data):
+
+    schema = {
+    "properties": {
+        "name": {"type": "string"},
+        "address": {"type": "string"},
+        "opening balance": {"type": "integer"},
+        "closing balance": {"type": "integer"},
+        "income/salary list": {"type": "string"},
+        "income/salary total": {"type": "integer"},
+        "Outgoings/Expenses list": {"type": "string"},
+        "Outgoings/Expenses total": {"type": "integer"},
+
+    }
+    }   
+
+    llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo", openai_api_key=Config.OPENAI_API_KEY)
+    chain = create_extraction_chain(schema, llm)
+    output = chain.run(data)
+    return output
 
 def format_template(json):
 
+
     created_template = '''
 
-    Give me a recipe, including the cooking method for the items that I have for {selectedNo} people.
-    
-    Specify which ingredients will expire soon.
-    Specify which ingredients are in the pantry (other items) and Specify which ingredients are needed to be added to a shopping list.
-    
-    Also supply full cooking instructions. 
-    
-    The meal should be {selectedCuisine} inspired. 
-    
-    Please also provide detailed cooking instructions.
+    Please extract the fol
 
     '''
     
-    if json.get('selectedCuisine') !=='Pot Luck':
+    if json.get('selectedCuisine') != 'Pot Luck':
         created_template += ' Focus on a {selectedCuisine} inspired meal.'
     if json.get('selectedCalorie') == 'Yes':
         created_template += ' Please include a calorie breakdown'
@@ -45,9 +60,7 @@ def format_template(json):
             selectedCuisine=json.get('selectedCuisine'),
         )
 
-    response = chat(filled_template).content
-
-    return response
+    return filled_template
 
 
 def format_template_second(json):
