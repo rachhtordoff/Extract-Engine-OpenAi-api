@@ -9,9 +9,9 @@ import PyPDF2
 
 openapi = Blueprint('openapi', __name__)
 
-@openapi.route('/chatgpt_call', methods=['POST'])
+@openapi.route('/extract_data_bank_statement', methods=['POST'])
 @jwt_required()
-def chatgtp_call():
+def extract_data_bank_statement():
     data = request.json
     path_to_pdf = 'src/routes/downloadfile.PDF'
     extracted_text = extract_text_from_pdf(path_to_pdf)

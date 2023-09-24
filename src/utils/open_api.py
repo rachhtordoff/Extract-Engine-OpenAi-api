@@ -12,12 +12,10 @@ def call_bank_statement(data):
     "properties": {
         "name": {"type": "string"},
         "address": {"type": "string"},
-        "opening balance": {"type": "integer"},
-        "closing balance": {"type": "integer"},
-        "income/salary total": {"type": "integer"},
-        "income/salary breakdown": {"type": "string"},
-        "Outgoings/Expenses total": {"type": "integer"},
-        "Outgoings/Expenses breakdown": {"type": "string"}
+        "opening_balance": {"type": "integer"},
+        "closing_balance": {"type": "integer"},
+        "income/salary_total_amount": {"type": "integer"},
+        "Outgoings/Expenses_total_amount": {"type": "integer"}
 
     }
     }   
@@ -25,6 +23,7 @@ def call_bank_statement(data):
     llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo", openai_api_key=Config.OPENAI_API_KEY)
     chain = create_extraction_chain(schema, llm)
     output = chain.run(data)
+    print(output)
     return output
 
 def format_template(json):
