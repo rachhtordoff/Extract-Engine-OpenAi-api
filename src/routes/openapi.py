@@ -13,23 +13,10 @@ openapi = Blueprint('openapi', __name__)
 @jwt_required()
 def chatgtp_call():
     data = request.json
-    print(data)
-
     path_to_pdf = 'src/routes/downloadfile.PDF'
-    print(path_to_pdf)
     extracted_text = extract_text_from_pdf(path_to_pdf)
-    print(extracted_text)
     generate_template = open_api.call_bank_statement(extracted_text)
-    print(generate_template)
-    # generate_template_checkup = open_api.format_template_second(data)
-
-    # open_api.get_chat_response(generate_template, generate_template_checkup, data)
-
-
-    # product = Product(**data)
-    # db.session.add(product)
-    # db.session.commit()
-    # return jsonify(product.to_dict())
+    return jsonify(generate_template) 
 
 
 def extract_text_from_pdf(pdf_path):

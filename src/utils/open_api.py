@@ -5,7 +5,6 @@ from langchain.chains import LLMChain
 from langchain.chains import SimpleSequentialChain
 from langchain.chains import create_extraction_chain
 from src.config import Config
-from typing import List
 
 def call_bank_statement(data):
 
@@ -15,10 +14,10 @@ def call_bank_statement(data):
         "address": {"type": "string"},
         "opening balance": {"type": "integer"},
         "closing balance": {"type": "integer"},
-        "income/salary list": {"type": "string"},
         "income/salary total": {"type": "integer"},
-        "Outgoings/Expenses list": {"type": "string"},
+        "income/salary breakdown": {"type": "string"},
         "Outgoings/Expenses total": {"type": "integer"},
+        "Outgoings/Expenses breakdown": {"type": "string"}
 
     }
     }   
