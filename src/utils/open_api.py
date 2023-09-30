@@ -14,25 +14,37 @@ def call_bank_statement(data):
         "address": {"type": "string"},
         "opening_balance": {"type": "integer"},
         "closing_balance": {"type": "integer"},
-        "income/salary_total_amount": {"type": "integer"},
-        "Outgoings/Expenses_total_amount": {"type": "integer"}
-
+        "income/salary_total": {"type": "integer"},
+        "Outgoings/Expenses_total": {"type": "integer"}
     }
     }   
 
     llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo", openai_api_key=Config.OPENAI_API_KEY)
     chain = create_extraction_chain(schema, llm)
     output = chain.run(data)
-    print(output)
     return output
 
+def custom_template_data_extract(web_scraped_text, phrases):
+
+    property_phrases = {}
+    for phrase in phrases:
+        property_phrases.update({
+            phrase.replace(' ','_'): {"type": "string"}
+        })
+
+    schema = {
+        "properties": property_phrases
+    }
+
+    llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo", openai_api_key=Config.OPENAI_API_KEY)
+    chain = create_extraction_chain(schema, llm)
+    output = chain.run(web_scraped_text)
+    return output
+
+
 def format_template(json):
-
-
     created_template = '''
-
     Please extract the fol
-
     '''
     
     if json.get('selectedCuisine') != 'Pot Luck':

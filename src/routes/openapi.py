@@ -13,10 +13,23 @@ openapi = Blueprint('openapi', __name__)
 @jwt_required()
 def extract_data_bank_statement():
     data = request.json
+    # TEST -- REPLACE THIS
     path_to_pdf = 'src/routes/downloadfile.PDF'
     extracted_text = extract_text_from_pdf(path_to_pdf)
     generate_template = open_api.call_bank_statement(extracted_text)
     return jsonify(generate_template) 
+
+@openapi.route('/extract_data_from_webscraped_urls', methods=['POST'])
+@jwt_required()
+def extract_data_from_webscraped_urls():
+    data = request.json
+    output={}
+    for key, value in data.get('scraped_websites').items():
+
+        generate_template = open_api.custom_template_data_extract(value, data.get('phrases_list'))
+        output.update({key: generate_template})
+    print(output)
+    return jsonify(output) 
 
 
 def extract_text_from_pdf(pdf_path):
