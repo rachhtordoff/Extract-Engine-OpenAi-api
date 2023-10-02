@@ -3,7 +3,7 @@ from src.models import MachineLearning
 from flask_jwt_extended import create_access_token, jwt_required
 from datetime import datetime, timedelta
 from src import db
-from src.utils import open_api
+from src.utils.open_api import DataExtractor, TemplateFormatter, ChatResponder
 import PyPDF2
 
 
@@ -16,7 +16,7 @@ def extract_data_bank_statement():
     # TEST -- REPLACE THIS
     path_to_pdf = 'src/routes/downloadfile.PDF'
     extracted_text = extract_text_from_pdf(path_to_pdf)
-    generate_template = open_api.call_bank_statement(extracted_text)
+    generate_template = DataExtractor.call_bank_statement(extracted_text)
     return jsonify(generate_template) 
 
 @openapi.route('/extract_data_from_webscraped_urls', methods=['POST'])
@@ -26,7 +26,7 @@ def extract_data_from_webscraped_urls():
     output={}
     for key, value in data.get('scraped_websites').items():
 
-        generate_template = open_api.custom_template_data_extract(value, data.get('phrases_list'))
+        generate_template = DataExtractor.custom_template_data_extract(value, data.get('phrases_list'))
         output.update({key: generate_template})
     print(output)
     return jsonify(output) 
