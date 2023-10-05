@@ -13,3 +13,11 @@ numpy
 scikit-learn
 pypdf2
 openai
+Flask-Testing
+flake8
+blinker
+PyJWT
+Flask-JWT-Extended
+pytest==7.4.2
+pytest-cov
+Werkzeug==2.3.7

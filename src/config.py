@@ -18,4 +18,5 @@ class Config:
     OPENAI_API_KEY = os.environ['OPENAPI_KEY']
     postgresql_string = 'postgresql://{}:{}@{}:{}/{}'
     SQLALCHEMY_DATABASE_URI = postgresql_string.format(
-        SQLALCHEMY_USER, SQLALCHEMY_PASSWORD, SQLALCHEMY_HOST, SQLALCHEMY_PORT, SQLALCHEMY_DB)
+        SQLALCHEMY_USER, SQLALCHEMY_PASSWORD, SQLALCHEMY_HOST,
+        SQLALCHEMY_PORT, SQLALCHEMY_DB)

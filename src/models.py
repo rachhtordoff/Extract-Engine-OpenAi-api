@@ -1,12 +1,11 @@
 from src import db
-from sqlalchemy.dialects.postgresql import JSONB
 
 
 class MachineLearning(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     prompt_text = db.Column(db.String)
     response_text = db.Column(db.String)
-    timestamp =  db.Column(db.db.String)
+    timestamp = db.Column(db.db.String)
     model_version = db.Column(db.db.String(64))
 
     def to_dict(self):

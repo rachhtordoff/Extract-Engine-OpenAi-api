@@ -6,6 +6,7 @@ from langchain.chains import SimpleSequentialChain
 from langchain.chains import create_extraction_chain
 from src.config import Config
 
+
 class DataExtractor:
     def __init__(self, api_key=Config.OPENAI_API_KEY):
         self.llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo", openai_api_key=api_key)
@@ -20,7 +21,7 @@ class DataExtractor:
                 "income/salary_total": {"type": "integer"},
                 "Outgoings/Expenses_total": {"type": "integer"}
             }
-        }   
+        }
         chain = create_extraction_chain(schema, self.llm)
         output = chain.run(data)
         return output
@@ -37,6 +38,7 @@ class DataExtractor:
         chain = create_extraction_chain(schema, self.llm)
         output = chain.run(web_scraped_text)
         return output
+
 
 class TemplateFormatter:
     def format_from_json(self, json_data):
@@ -76,6 +78,7 @@ class TemplateFormatter:
             created_template += ' A full calorie breakdown has been included'
         prompted_template = ChatPromptTemplate.from_template(created_template)
         return prompted_template
+
 
 class ChatResponder:
     def __init__(self, temperature=0.0):

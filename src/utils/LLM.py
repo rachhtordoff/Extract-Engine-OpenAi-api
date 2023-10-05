@@ -2,33 +2,39 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
-import json
 import pandas as pd
 
 
-def teach_model(json):
-    # read json into dataframe
-    df = pd.DataFrame(json)
+class TextRegressor:
+    def __init__(self, max_features=5000):
+        self.vectorizer = TfidfVectorizer(max_features=max_features)
+        self.model = LinearRegression()
+        self.mse = None
 
-    # convert text data into numerical format
-    vectorizer = TfidfVectorizer(max_features=5000)
-    X = vectorizer.fit_transform(data['input'])
+    def train(self, data_json):
+        """
+        Train the model with data from a JSON.
 
-    # Splitting the data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(X, data['output'], test_size=0.2, random_state=42)
+        :param data_json: dict, contains 'input' and 'output' keys with text and target data
+        """
+        df = pd.DataFrame(data_json)
+        X = self.vectorizer.fit_transform(df['input'])
+        X_train, X_test, y_train, y_test = train_test_split(X, df['output'], test_size=0.2, random_state=42)
 
-    # Initialize and train the model
-    model = LinearRegression()
-    model.fit(X_train, y_train)
+        self.model.fit(X_train, y_train)
 
-    # Predict on the test set
-    y_pred = model.predict(X_test)
+        y_pred = self.model.predict(X_test)
+        self.mse = mean_squared_error(y_test, y_pred)
 
-    # Compute the mean squared error
-    mse = mean_squared_error(y_test, y_pred)
+        return self.mse
 
+    def predict(self, prompt):
+        """
+        Predict a response based on a text prompt.
 
-def predict_response(prompt):
-    prompt_vector = vectorizer.transform([prompt])
-    response = model.predict(prompt_vector)
-    return response[0]
+        :param prompt: str, the text input for prediction
+        :return: The model's prediction
+        """
+        prompt_vector = self.vectorizer.transform([prompt])
+        response = self.model.predict(prompt_vector)
+        return response[0]

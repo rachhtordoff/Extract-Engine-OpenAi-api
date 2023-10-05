@@ -15,4 +15,4 @@ def health():
     return jsonify({
         "status": "OK",
         "message": "Service is up and running"
-        })
+    })
