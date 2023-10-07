@@ -5,11 +5,16 @@ from langchain.chains import LLMChain
 from langchain.chains import SimpleSequentialChain
 from langchain.chains import create_extraction_chain
 from src.config import Config
+from langchain.chains.summarize import load_summarize_chain
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 
 class DataExtractor:
     def __init__(self, api_key=Config.OPENAI_API_KEY):
-        self.llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo", openai_api_key=api_key)
+        self.llm = ChatOpenAI(temperature=1,
+                        model="gpt-3.5-turbo",
+                        openai_api_key=api_key,
+                        max_tokens=4097)
 
     def extract_from_bank_statement(self, data):
         schema = {
@@ -27,8 +32,7 @@ class DataExtractor:
         return output
 
     def custom_template_data_extract(self, web_scraped_text, phrases):
-        print(phrases)
-        print(web_scraped_text)
+
         property_phrases = {}
         for phrase in phrases:
             property_phrases.update({
@@ -40,6 +44,15 @@ class DataExtractor:
         chain = create_extraction_chain(schema, self.llm)
         output = chain.run(web_scraped_text)
         return output
+
+    def reduce_summarize_pdf_data(self, data):
+        chain = load_summarize_chain(self.llm, chain_type='map_reduce')
+        output = chain.run(data)
+        return output        
+
+    def chunk_data(self, data):
+        c_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=1)
+        return c_splitter.split_text(data)
 
 
 class TemplateFormatter:

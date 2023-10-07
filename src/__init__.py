@@ -8,7 +8,6 @@ app = Flask(__name__)
 app.config.from_object(Config)
 app.config['SQLALCHEMY_DATABASE_URI'] = Config.SQLALCHEMY_DATABASE_URI
 
-app.config['JWT_SECRET_KEY'] = Config.JWT_SECRET_KEY
 db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)

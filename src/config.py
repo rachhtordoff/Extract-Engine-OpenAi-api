@@ -8,7 +8,6 @@ class Config:
     SECRET_KEY = 'this-really-needs-to-be-changed'
     DEVELOPMENT = os.environ['DEVELOPMENT']
     DEBUG = os.environ['DEBUG']
-    JWT_SECRET_KEY = os.environ['JWT_SECRET_KEY']
 
     SQLALCHEMY_USER = os.environ['POSTGRES_USER']
     SQLALCHEMY_PASSWORD = os.environ['POSTGRES_PASSWORD']
