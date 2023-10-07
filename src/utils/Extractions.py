@@ -18,8 +18,8 @@ class DataBankStatementExtractor:
         self.pdf_path = pdf_path
 
     def extract_and_format(self):
-        extracted_text = PDFExtractor.extract_text(self.pdf_path)
-        generate_template = DataExtractor.extract_from_bank_statement(extracted_text)
+        extracted_text = PDFExtractor().extract_text(self.pdf_path)
+        generate_template = DataExtractor().extract_from_bank_statement(extracted_text)
         return generate_template
 
 
@@ -31,6 +31,6 @@ class WebScrapedDataExtractor:
     def extract_and_format(self):
         output = {}
         for key, value in self.scraped_websites.items():
-            generate_template = DataExtractor.custom_template_data_extract(value, self.phrases_list)
+            generate_template = DataExtractor().custom_template_data_extract(value, self.phrases_list)
             output.update({key: generate_template})
         return output

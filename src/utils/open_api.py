@@ -27,6 +27,8 @@ class DataExtractor:
         return output
 
     def custom_template_data_extract(self, web_scraped_text, phrases):
+        print(phrases)
+        print(web_scraped_text)
         property_phrases = {}
         for phrase in phrases:
             property_phrases.update({
