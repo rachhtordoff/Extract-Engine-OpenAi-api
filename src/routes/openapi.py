@@ -20,11 +20,15 @@ def extract_data_from_webscraped_urls():
     data = request.json
     extractor = WebScrapedDataExtractor(data.get('scraped_websites'),
                                         data.get('phrases_list'))
-    return jsonify(extractor.extract_and_format_textblock())
+    extract_and_format_textblock = extractor.extract_and_format_textblock()
+    print(extract_and_format_textblock)
+    return jsonify(extract_and_format_textblock)
 
 @openapi.route('/extract_data_from_webscraped_pdf', methods=['POST'])
 def extract_data_from_webscraped_pdf():
     data = request.json
     extractor = WebScrapedDataExtractor(data.get('document'),
                                         data.get('phrases_list'))
-    return jsonify(extractor.extract_and_format_pdf())
+    extract_and_Format = extractor.extract_and_format_pdf()
+    print(extract_and_Format)
+    return jsonify(extract_and_Format)

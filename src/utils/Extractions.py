@@ -32,18 +32,30 @@ class WebScrapedDataExtractor:
         output = {}
         MAX_CHUNK_SIZE = 2500  # Set the chunk size
         for key, value in self.scraped_websites.items():
-            print(len(value))
 
             chunks = DataExtractor().chunk_data(value)
-           
-            for i, chunk in enumerate(chunks):
+            counter = 1
+            for chunk in chunks:
                 generate_template = DataExtractor().custom_template_data_extract(chunk, self.phrases_list)
-                
+
                 # Append or merge the extracted data in output
                 if key in output:
-                    output[key].update({f"chunk_{i}": generate_template})
+                    # Iterating through generated_template to avoid overwriting and to append data if key already exists
+                    for template_key, template_value in generate_template.items():
+                        # Check if template_key already exists in output
+                        if template_key in output[key].get(f"chunk_{counter}", {}):
+                            # Concatenating or appending new data to existing data
+                            output[key][f"chunk_{counter}"][template_key] += template_value 
+                        else:
+                            # If key does not exist, simply add it to the output
+                            if f"chunk_{counter}" in output[key]:
+                                output[key][f"chunk_{counter}"].update({template_key: template_value})
+                            else:
+                                output[key][f"chunk_{counter}"] = {template_key: template_value}
                 else:
-                    output[key] = {f"chunk_{i}": generate_template}
+                    output[key] = {f"chunk_{counter}": generate_template}
+                counter+=1
+
         return output
 
     def extract_and_format_pdf(self):

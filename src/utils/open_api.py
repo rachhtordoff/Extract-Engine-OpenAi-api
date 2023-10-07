@@ -7,14 +7,15 @@ from langchain.chains import create_extraction_chain
 from src.config import Config
 from langchain.chains.summarize import load_summarize_chain
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-
+import openai
+import json
 
 class DataExtractor:
     def __init__(self, api_key=Config.OPENAI_API_KEY):
         self.llm = ChatOpenAI(temperature=1,
                         model="gpt-3.5-turbo",
                         openai_api_key=api_key,
-                        max_tokens=4097)
+                        max_tokens=3000)
 
     def extract_from_bank_statement(self, data):
         schema = {
@@ -33,17 +34,28 @@ class DataExtractor:
 
     def custom_template_data_extract(self, web_scraped_text, phrases):
 
-        property_phrases = {}
-        for phrase in phrases:
-            property_phrases.update({
-                phrase.replace(' ', '_'): {"type": "string"}
-            })
-        schema = {
-            "properties": property_phrases
-        }
-        chain = create_extraction_chain(schema, self.llm)
-        output = chain.run(web_scraped_text)
-        return output
+        get_max_tokens = 4097 - len(web_scraped_text)
+        llm = ChatOpenAI(temperature=1,
+                        model="gpt-3.5-turbo",
+                        openai_api_key=Config.OPENAI_API_KEY,
+                        max_tokens=get_max_tokens)
+
+        prompt = f"""Given the text: '{web_scraped_text}'
+        
+        extract relevant information about the following phrases {phrases} 
+        in a structured format like JSON
+        """
+        openai.api_key = Config.OPENAI_API_KEY
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=prompt,
+            temperature=0.2,
+            max_tokens=get_max_tokens,
+            n=1,
+            stop=None
+        )
+        output_text = response.choices[0].text.strip()
+        return json.loads(output_text)
 
     def reduce_summarize_pdf_data(self, data):
         chain = load_summarize_chain(self.llm, chain_type='map_reduce')
