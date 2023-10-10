@@ -42,7 +42,7 @@ class DataExtractor:
 
         prompt = f"""Given the text: '{web_scraped_text}'
         
-        extract relevant information about the following phrases {phrases} 
+        extract relevant information about the following phrases {', '.join(phrases)} 
         in a structured format like JSON
         """
         openai.api_key = Config.OPENAI_API_KEY
