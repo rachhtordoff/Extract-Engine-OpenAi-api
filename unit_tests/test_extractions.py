@@ -32,21 +32,18 @@ class TestWebScrapedDataExtractor(unittest.TestCase):
         self.ctx = self.app.app_context()
         self.ctx.push()
 
-    @patch('src.utils.Extractions.DataExtractor.custom_template_data_extract')
-    def test_extract_and_format(self, mock_custom_template_data_extract):
-        mock_custom_template_data_extract.return_value = "formatted_data"
+def test_extract_and_format(self, mock_custom_template_data_extract):
+    mock_custom_template_data_extract.return_value = "formatted_data"
+    scraped_websites = {'site1': 'data1', 'site2': 'data2'}
+    phrases_list = ['phrase1', 'phrase2']
 
-        scraped_websites = {'site1': 'data1', 'site2': 'data2'}
-        phrases_list = ['phrase1', 'phrase2']
+    extractor = WebScrapedDataExtractor(scraped_websites, phrases_list)
+    result = extractor.extract_and_format_textblock()
 
-        extractor = WebScrapedDataExtractor(scraped_websites, phrases_list)
-        result = extractor.extract_and_format()
-
-        expected_output = {'site1': 'formatted_data', 'site2': 'formatted_data'}
-
-        self.assertEqual(result, expected_output)
-        mock_custom_template_data_extract.assert_any_call('data1', phrases_list)
-        mock_custom_template_data_extract.assert_any_call('data2', phrases_list)
+    expected_output = {'site1': 'formatted_data', 'site2': 'formatted_data'}
+    self.assertEqual(result, expected_output)
+    mock_custom_template_data_extract.assert_any_call('data1', phrases_list)
+    mock_custom_template_data_extract.assert_any_call('data2', phrases_list)
 
 
 if __name__ == '__main__':

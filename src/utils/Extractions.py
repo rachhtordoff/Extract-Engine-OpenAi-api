@@ -49,5 +49,7 @@ class WebScrapedDataExtractor:
                 else:
                     output[key] = {f"result_{counter}": generate_template}
                 counter+=1
+            if output != {}:
+                output = DataExtractor().summerize_data_extract(output)
 
         return output

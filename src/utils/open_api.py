@@ -32,6 +32,32 @@ class DataExtractor:
         output = chain.run(data)
         return output
 
+
+    def summerize_data_extract(self, output):
+
+        get_max_tokens = 3000 - len(output)
+        llm = ChatOpenAI(temperature=1,
+                        model="gpt-3.5-turbo",
+                        openai_api_key=Config.OPENAI_API_KEY,
+                        max_tokens=get_max_tokens)
+
+        prompt = f"""Given the json output: '{output}'
+        
+        sumarise the outputs and return
+        in a structured format like JSON
+        """
+        openai.api_key = Config.OPENAI_API_KEY
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=prompt,
+            temperature=0.2,
+            max_tokens=get_max_tokens,
+            n=1,
+            stop=None
+        )
+        output_text = response.choices[0].text.strip()
+        return json.loads(output_text)
+
     def custom_template_data_extract(self, web_scraped_text, phrases):
 
         get_max_tokens = 4097 - len(web_scraped_text)
