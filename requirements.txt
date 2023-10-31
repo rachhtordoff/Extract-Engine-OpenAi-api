@@ -21,3 +21,8 @@ Flask-JWT-Extended
 pytest==7.4.2
 pytest-cov
 Werkzeug==2.3.7
+bs4
+chromadb
+tiktoken
+boto3
+pypdf

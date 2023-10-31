@@ -19,3 +19,8 @@ class Config:
     SQLALCHEMY_DATABASE_URI = postgresql_string.format(
         SQLALCHEMY_USER, SQLALCHEMY_PASSWORD, SQLALCHEMY_HOST,
         SQLALCHEMY_PORT, SQLALCHEMY_DB)
+
+    aws_access_key_id = os.environ['aws_access_key_id']
+    aws_secret_access_key = os.environ['aws_secret_access_key']
+    BUCKET_NAME = os.environ['BUCKET_NAME']
+    BUCKET_ID = os.environ['BUCKET_ID']

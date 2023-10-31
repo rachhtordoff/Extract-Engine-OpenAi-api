@@ -24,8 +24,8 @@ class DataBankStatementExtractor:
 
 
 class WebScrapedDataExtractor:
-    def __init__(self, data, phrases_list):
-        self.data = data
+    def __init__(self, website_urls, phrases_list):
+        self.website_urls = website_urls
         self.phrases_list = phrases_list
 
     def extract_and_format_textblock(self):
@@ -35,6 +35,7 @@ class WebScrapedDataExtractor:
             chunks = DataExtractor().chunk_data(value)
             counter = 1
             for chunk in chunks:
+                print(chunk)
                 generate_template = DataExtractor().custom_template_data_extract(chunk, self.phrases_list)
 
                 if key in output:
@@ -49,7 +50,10 @@ class WebScrapedDataExtractor:
                 else:
                     output[key] = {f"result_{counter}": generate_template}
                 counter+=1
-            if output != {}:
-                output = DataExtractor().summerize_data_extract(output)
+                print('*******')
+                print(counter)
+
+            # if output != {}:
+            #     output = DataExtractor().summerize_data_extract(output)
 
         return output

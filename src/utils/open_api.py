@@ -1,14 +1,20 @@
 from langchain.llms import OpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.chat_models import ChatOpenAI
+from langchain.indexes import VectorstoreIndexCreator
 from langchain.chains import LLMChain
 from langchain.chains import SimpleSequentialChain
+from langchain.document_loaders import WebBaseLoader, PyPDFLoader
 from langchain.chains import create_extraction_chain
 from src.config import Config
 from langchain.chains.summarize import load_summarize_chain
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from src.utils.aws_s3 import AWSService
 import openai
 import json
+import os
+
+os.environ["OPENAI_API_KEY"] = Config.OPENAI_API_KEY
 
 class DataExtractor:
     def __init__(self, api_key=Config.OPENAI_API_KEY):
@@ -30,6 +36,43 @@ class DataExtractor:
         }
         chain = create_extraction_chain(schema, self.llm)
         output = chain.run(data)
+        return output
+
+    def get_query_from_url(self, urls, phrases):
+
+        output = []
+
+        for url in urls:
+            loader = WebBaseLoader(url)
+            data = loader.load()
+
+            index = VectorstoreIndexCreator().from_loaders([loader])
+
+            prompt = f"Extract relevant information about the following phrases {', '.join(phrases)}"
+
+            output.append({url: index.query(prompt)})
+    
+        return output
+
+    def get_query_from_pdfs(self, file_details, phrases):
+
+        output = []
+
+        for detail in file_details:
+            AWSService().download_file(detail['folder_id'], detail['doc_name'])
+
+            loader = PyPDFLoader(f'/opt/src/documents/{detail["doc_name"]}')
+            data = loader.load()
+
+            index = VectorstoreIndexCreator().from_loaders([loader])
+
+            prompt = f"Extract relevant information about the following phrases {', '.join(phrases)}"
+
+            output.append({detail["doc_name"]: index.query(prompt)})
+        
+            if os.path.exists(f"/opt/src/documents/{detail['doc_name']}"):
+                os.remove(f"/opt/src/documents/{detail['doc_name']}")
+
         return output
 
 
@@ -80,7 +123,12 @@ class DataExtractor:
             n=1,
             stop=None
         )
-        output_text = response.choices[0].text.strip()
+
+        output_text = {}
+        choices = response.choices
+        if choices != []:
+            output_text = choices[0].text.strip()
+
         return json.loads(output_text)
 
     def reduce_summarize_pdf_data(self, data):

@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify, request
 from src.utils.Extractions import (
     DataBankStatementExtractor,
-    WebScrapedDataExtractor
+    WebScrapedDataExtractor,
+    DataExtractor
 )
 
 openapi = Blueprint('openapi', __name__)
@@ -18,15 +19,14 @@ def extract_data_bank_statement():
 @openapi.route('/extract_data_from_webscraped_urls', methods=['POST'])
 def extract_data_from_webscraped_urls():
     data = request.json
-    extractor = WebScrapedDataExtractor(data.get('scraped_websites'),
+    output = DataExtractor().get_query_from_url(data.get('website_urls'),
                                         data.get('phrases_list'))
-    extract_and_format_textblock = extractor.extract_and_format_textblock()
-    return jsonify(extract_and_format_textblock)
+    print(output)
+    return jsonify(output)
 
 @openapi.route('/extract_data_from_pdfs', methods=['POST'])
 def extract_data_from_pdfs():
     data = request.json
-    extractor = WebScrapedDataExtractor(data.get('pdf_data'),
+    output = DataExtractor().get_query_from_pdfs(data.get('files'),
                                         data.get('phrases_list'))
-    extract_and_format_textblock = extractor.extract_and_format_textblock()
-    return jsonify(extract_and_format_textblock)
+    return jsonify(output)
