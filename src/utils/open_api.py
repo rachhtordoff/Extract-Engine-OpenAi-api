@@ -16,12 +16,13 @@ import os
 
 os.environ["OPENAI_API_KEY"] = Config.OPENAI_API_KEY
 
+
 class DataExtractor:
     def __init__(self, api_key=Config.OPENAI_API_KEY):
         self.llm = ChatOpenAI(temperature=1,
-                        model="gpt-3.5-turbo",
-                        openai_api_key=api_key,
-                        max_tokens=3000)
+                              model="gpt-3.5-turbo",
+                              openai_api_key=api_key,
+                              max_tokens=3000)
 
     def extract_from_bank_statement(self, data):
         schema = {
@@ -44,48 +45,44 @@ class DataExtractor:
 
         for url in urls:
             loader = WebBaseLoader(url)
-            data = loader.load()
+            loader.load()
 
             index = VectorstoreIndexCreator().from_loaders([loader])
 
             prompt = f"Extract relevant information about the following phrases {', '.join(phrases)}"
 
             output.append({url: index.query(prompt)})
-    
+
         return output
 
     def get_query_from_pdfs(self, file_details, phrases):
 
         output = []
-
         for detail in file_details:
+
             AWSService().download_file(detail['folder_id'], detail['doc_name'])
 
-            loader = PyPDFLoader(f'/opt/src/documents/{detail["doc_name"]}')
-            data = loader.load()
+            split_name = detail['doc_name'].split('/')[-1]
+
+            loader = PyPDFLoader(f'/opt/src/documents/{split_name}')
+            loader.load()
 
             index = VectorstoreIndexCreator().from_loaders([loader])
 
             prompt = f"Extract relevant information about the following phrases {', '.join(phrases)}"
 
             output.append({detail["doc_name"]: index.query(prompt)})
-        
-            if os.path.exists(f"/opt/src/documents/{detail['doc_name']}"):
-                os.remove(f"/opt/src/documents/{detail['doc_name']}")
+
+            if os.path.exists(f"/opt/src/documents/{split_name}"):
+                os.remove(f"/opt/src/documents/{split_name}")
 
         return output
-
 
     def summerize_data_extract(self, output):
 
         get_max_tokens = 3000 - len(output)
-        llm = ChatOpenAI(temperature=1,
-                        model="gpt-3.5-turbo",
-                        openai_api_key=Config.OPENAI_API_KEY,
-                        max_tokens=get_max_tokens)
-
         prompt = f"""Given the json output: '{output}'
-        
+
         sumarise the outputs and return
         in a structured format like JSON
         """
@@ -104,14 +101,9 @@ class DataExtractor:
     def custom_template_data_extract(self, web_scraped_text, phrases):
 
         get_max_tokens = 4097 - len(web_scraped_text)
-        llm = ChatOpenAI(temperature=1,
-                        model="gpt-3.5-turbo",
-                        openai_api_key=Config.OPENAI_API_KEY,
-                        max_tokens=get_max_tokens)
-
         prompt = f"""Given the text: '{web_scraped_text}'
-        
-        extract relevant information about the following phrases {', '.join(phrases)} 
+
+        extract relevant information about the following phrases {', '.join(phrases)}
         in a structured format like JSON
         """
         openai.api_key = Config.OPENAI_API_KEY
@@ -134,7 +126,7 @@ class DataExtractor:
     def reduce_summarize_pdf_data(self, data):
         chain = load_summarize_chain(self.llm, chain_type='map_reduce')
         output = chain.run(data)
-        return output        
+        return output
 
     def chunk_data(self, data):
         c_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=1)

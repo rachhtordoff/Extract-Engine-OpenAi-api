@@ -18,4 +18,4 @@ EXPOSE 8000
 
 WORKDIR /opt
 
-CMD ["/usr/local/bin/gunicorn", "-k", "eventlet", "--timeout", "600", "-w", "4", "--pythonpath", "/opt", "--access-logfile", "-", "manage:manager.app", "--reload", "-b", "0.0.0.0:8000"]
+CMD ["/usr/local/bin/gunicorn", "-k", "eventlet", "--timeout", "100000", "-w", "4", "--pythonpath", "/opt", "--access-logfile", "-", "manage:manager.app", "--reload", "-b", "0.0.0.0:8000"]

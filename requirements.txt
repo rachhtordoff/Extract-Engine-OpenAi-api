@@ -26,3 +26,4 @@ chromadb
 tiktoken
 boto3
 pypdf
+tensorflow

@@ -30,18 +30,16 @@ class WebScrapedDataExtractor:
 
     def extract_and_format_textblock(self):
         output = {}
-        MAX_CHUNK_SIZE = 2500
         for key, value in self.data.items():
             chunks = DataExtractor().chunk_data(value)
             counter = 1
             for chunk in chunks:
-                print(chunk)
                 generate_template = DataExtractor().custom_template_data_extract(chunk, self.phrases_list)
 
                 if key in output:
                     for template_key, template_value in generate_template.items():
                         if template_key in output[key].get(f"result_{counter}", {}):
-                            output[key][f"result_{counter}"][template_key] += template_value 
+                            output[key][f"result_{counter}"][template_key] += template_value
                         else:
                             if f"result_{counter}" in output[key]:
                                 output[key][f"result_{counter}"].update({template_key: template_value})
@@ -49,11 +47,5 @@ class WebScrapedDataExtractor:
                                 output[key][f"result_{counter}"] = {template_key: template_value}
                 else:
                     output[key] = {f"result_{counter}": generate_template}
-                counter+=1
-                print('*******')
-                print(counter)
-
-            # if output != {}:
-            #     output = DataExtractor().summerize_data_extract(output)
-
+                counter += 1
         return output
