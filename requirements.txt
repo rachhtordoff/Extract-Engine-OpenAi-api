@@ -27,3 +27,5 @@ tiktoken
 boto3
 pypdf
 tensorflow
+flask_script
+Flask-Script==2.0.5
