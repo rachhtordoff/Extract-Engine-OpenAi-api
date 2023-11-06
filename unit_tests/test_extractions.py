@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from src.utils.Extractions import DataBankStatementExtractor, WebScrapedDataExtractor
+from src.utils.Extractions import DataBankStatementExtractor
 from src import app
 
 
@@ -23,6 +23,7 @@ class TestDataBankStatementExtractor(unittest.TestCase):
         mock_extract_text.assert_called_once_with('dummy_path')
         mock_extract_from_bank_statement.assert_called_once_with('extracted_text')
         self.assertEqual(result, 'formatted_data')
+
 
 if __name__ == '__main__':
     unittest.main()

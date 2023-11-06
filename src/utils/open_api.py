@@ -1,28 +1,23 @@
-from langchain.llms import OpenAI
-from langchain.prompts import ChatPromptTemplate
-from langchain.chat_models import ChatOpenAI
-from langchain.indexes import VectorstoreIndexCreator
-from langchain.chains import LLMChain
-from langchain.chains import SimpleSequentialChain
-from langchain.document_loaders import WebBaseLoader, PyPDFLoader
-from langchain.chains import create_extraction_chain
-from src.config import Config
-from langchain.chains.summarize import load_summarize_chain
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from src.utils.aws_s3 import AWSService
-import openai
 import json
 import os
+from src.config import Config
+from src.utils.aws_s3 import AWSService
+from langchain.llms import OpenAI, ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+from langchain.document_loaders import WebBaseLoader, PyPDFLoader
+from langchain.chains import create_extraction_chain, LLMChain, SimpleSequentialChain, load_summarize_chain
+from langchain.indexes import VectorstoreIndexCreator
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+import openai
 
+# Set the OpenAI API key from the environment
 os.environ["OPENAI_API_KEY"] = Config.OPENAI_API_KEY
 
 
 class DataExtractor:
     def __init__(self, api_key=Config.OPENAI_API_KEY):
-        self.llm = ChatOpenAI(temperature=1,
-                              model="gpt-3.5-turbo",
-                              openai_api_key=api_key,
-                              max_tokens=3000)
+        self.llm = ChatOpenAI(temperature=1, model="gpt-3.5-turbo",
+                              openai_api_key=api_key, max_tokens=3000)
 
     def extract_from_bank_statement(self, data):
         schema = {
@@ -36,141 +31,78 @@ class DataExtractor:
             }
         }
         chain = create_extraction_chain(schema, self.llm)
-        output = chain.run(data)
-        return output
+        return chain.run(data)
+
+    def query_documents(self, loaders, phrases):
+        outputs = []
+        prompt_template = "Extract relevant information about the following phrases: {}"
+        prompt = prompt_template.format(', '.join(phrases))
+
+        for loader in loaders:
+            index = VectorstoreIndexCreator().from_loaders([loader])
+            outputs.append(index.query(prompt))
+
+        return outputs
 
     def get_query_from_url(self, urls, phrases):
-
-        output = []
-
-        for url in urls:
-            loader = WebBaseLoader(url)
-            loader.load()
-
-            index = VectorstoreIndexCreator().from_loaders([loader])
-
-            prompt = f"Extract relevant information about the following phrases {', '.join(phrases)}"
-
-            output.append({url: index.query(prompt)})
-
-        return output
+        return self.query_documents([WebBaseLoader(url) for url in urls], phrases)
 
     def get_query_from_pdfs(self, file_details, phrases):
+        outputs = []
 
-        output = []
         for detail in file_details:
-
             AWSService().download_file(detail['folder_id'], detail['doc_name'])
-
             split_name = detail['doc_name'].split('/')[-1]
-
-            loader = PyPDFLoader(f'/opt/src/documents/{split_name}')
+            file_path = f'/opt/src/documents/{split_name}'
+            loader = PyPDFLoader(file_path)
             loader.load()
+            outputs.append(self.query_documents([loader], phrases))
+            os.remove(file_path) if os.path.exists(file_path) else None
 
-            index = VectorstoreIndexCreator().from_loaders([loader])
+        return outputs
 
-            prompt = f"Extract relevant information about the following phrases {', '.join(phrases)}"
-
-            output.append({detail["doc_name"]: index.query(prompt)})
-
-            if os.path.exists(f"/opt/src/documents/{split_name}"):
-                os.remove(f"/opt/src/documents/{split_name}")
-
-        return output
-
-    def summerize_data_extract(self, output):
-
-        get_max_tokens = 3000 - len(output)
-        prompt = f"""Given the json output: '{output}'
-
-        sumarise the outputs and return
-        in a structured format like JSON
-        """
-        openai.api_key = Config.OPENAI_API_KEY
-        response = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=prompt,
-            temperature=0.2,
-            max_tokens=get_max_tokens,
-            n=1,
-            stop=None
-        )
-        output_text = response.choices[0].text.strip()
-        return json.loads(output_text)
+    def summarize_data_extract(self, output):
+        return self.perform_openai_completion(output, "summarize the outputs and return in a structured format like JSON")
 
     def custom_template_data_extract(self, web_scraped_text, phrases):
+        return self.perform_openai_completion(web_scraped_text, f"extract relevant information about the following phrases {', '.join(phrases)} in a structured format like JSON")
 
-        get_max_tokens = 4097 - len(web_scraped_text)
-        prompt = f"""Given the text: '{web_scraped_text}'
-
-        extract relevant information about the following phrases {', '.join(phrases)}
-        in a structured format like JSON
-        """
+    def perform_openai_completion(self, text, instruction):
+        get_max_tokens = 4097 - len(text)
+        prompt = f"Given the text: '{text}'\n\n{instruction}"
         openai.api_key = Config.OPENAI_API_KEY
-        response = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=prompt,
-            temperature=0.2,
-            max_tokens=get_max_tokens,
-            n=1,
-            stop=None
-        )
-
-        output_text = {}
-        choices = response.choices
-        if choices != []:
-            output_text = choices[0].text.strip()
-
-        return json.loads(output_text)
+        response = openai.Completion.create(engine="text-davinci-003", prompt=prompt,
+                                            temperature=0.2, max_tokens=get_max_tokens)
+        return json.loads(response.choices[0].text.strip())
 
     def reduce_summarize_pdf_data(self, data):
         chain = load_summarize_chain(self.llm, chain_type='map_reduce')
-        output = chain.run(data)
-        return output
+        return chain.run(data)
 
     def chunk_data(self, data):
-        c_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=1)
-        return c_splitter.split_text(data)
+        splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=1)
+        return splitter.split_text(data)
 
 
 class TemplateFormatter:
     def format_from_json(self, json_data):
-        created_template = '''
-        Please extract the fol
-        '''
-        if json_data.get('selectedCuisine') != 'Pot Luck':
-            created_template += ' Focus on a {selectedCuisine} inspired meal.'
-        if json_data.get('selectedCalorie') == 'Yes':
-            created_template += ' Please include a calorie breakdown'
-        if json_data.get('selectedDietry'):
-            created_template += ' Please make sure the recipe is {dietaryString}'
-        prompted_template = ChatPromptTemplate.from_template(created_template)
-        if json_data.get('selectedDietry'):
-            dietaryString = ', '.join(json_data.get('selectedDietry'))
-            filled_template = prompted_template.format_messages(
-                selectedNo=json_data.get('selectedNo'),
-                selectedCuisine=json_data.get('selectedCuisine'),
-                dietaryString=dietaryString
-            )
-        else:
-            filled_template = prompted_template.format_messages(
-                selectedNo=json_data.get('selectedNo'),
-                selectedCuisine=json_data.get('selectedCuisine'),
-            )
-        return filled_template
+        template_parts = [
+            "Please extract the following information:",
+            f" Focus on a {json_data.get('selectedCuisine')} inspired meal." if json_data.get('selectedCuisine') != 'Pot Luck' else '',
+            " Please include a calorie breakdown" if json_data.get('selectedCalorie') == 'Yes' else '',
+            f" Please make sure the recipe is {', '.join(json_data.get('selectedDietry'))}" if json_data.get('selectedDietry') else ''
+        ]
+        return ChatPromptTemplate.from_template(''.join(template_parts))
 
     def format_second_template(self, json_data):
         created_template = '''
-        Make sure this recipe is in the following format
-        ingredients will expire soon and are in the recipe have been specified
-        ingredients are in the pantry (other items) and are in the recipe have been specified
-        any ingredients in the recipe that are not owned yet are displayed in a shopping list.
-        full cooking instructions have been supplied
-        '''
-        if json_data.get('selectedCalorie') == 'Yes':
-            created_template += ' A full calorie breakdown has been included'
-        prompted_template = ChatPromptTemplate.from_template(created_template)
-        return prompted_template
+        Make sure this recipe is in the following format:
+        - Ingredients that will expire soon and are in the recipe have been specified
+        - Ingredients that are in the pantry (other items) and are in the recipe have been specified
+        - Any ingredients not owned yet are displayed in a shopping list
+        - Full cooking instructions have been supplied
+        ''' + (' A full calorie breakdown has been included' if json_data.get('selectedCalorie') == 'Yes' else '')
+        return ChatPromptTemplate.from_template(created_template)
 
 
 class ChatResponder:
@@ -180,5 +112,5 @@ class ChatResponder:
     def get_response(self, prompt, prompt2):
         chain1 = LLMChain(llm=self.chat, prompt=prompt)
         chain2 = LLMChain(llm=self.chat, prompt=prompt2)
-        simple_sequential_chain = SimpleSequentialChain(chains=(chain1, chain2), verbose=True)
-        simple_sequential_chain.run('can you give me a recipe')
+        seq_chain = SimpleSequentialChain(chains=[chain1, chain2], verbose=True)
+        return seq_chain.run('can you give me a recipe')
