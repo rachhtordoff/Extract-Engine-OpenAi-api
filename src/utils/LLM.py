@@ -18,8 +18,9 @@ class TextRegressor:
 
     def train(self, data_json):
         df = pd.DataFrame(data_json)
-        X = self.vectorizer.fit_transform(df['input']).toarray()
-        y = df['output'].values
+        X = self.vectorizer.fit_transform(df['prompt_text']).toarray()
+        y = df['response_text'].values
+
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
         self.model.fit(X_train, y_train, epochs=10, validation_split=0.2)
