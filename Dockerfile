@@ -1,8 +1,7 @@
-FROM python:3.10
+FROM python:3.9
 MAINTAINER Rachael Tordoff
 
 
-RUN pip3 -q install gunicorn==19.9.0 eventlet==0.24.1
 RUN apt-get install -y libpq-dev
 
 # copy and install requirements before the rest of the sourcecode to allow docker caching to work
@@ -18,4 +17,4 @@ EXPOSE 8000
 
 WORKDIR /opt
 
-CMD ["/usr/local/bin/gunicorn", "-k", "eventlet", "--timeout", "100000", "-w", "4", "--pythonpath", "/opt", "--access-logfile", "-", "manage:manager.app", "--reload", "-b", "0.0.0.0:8000"]
+CMD ["gunicorn" "--bind 0.0.0.0:8000" "--access-logfile" "- src:app" "--reload"]
