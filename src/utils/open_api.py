@@ -2,7 +2,6 @@ import json
 import os
 from src.config import Config
 from src.utils.aws_s3 import AWSService
-from src.utils.machine_learning_service import MachineLearningService
 from langchain.llms import OpenAI
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
