@@ -17,4 +17,4 @@ EXPOSE 8000
 
 WORKDIR /opt
 
-CMD ["gunicorn", "--bind 0.0.0.0:8000", "--access-logfile", "- src:app", "--reload"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--access-logfile", "- src:app", "--reload"]
