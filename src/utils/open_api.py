@@ -3,10 +3,12 @@ import os
 from src.config import Config
 from src.utils.aws_s3 import AWSService
 from src.utils.machine_learning_service import MachineLearningService
-from langchain.llms import OpenAI, ChatOpenAI
+from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.document_loaders import WebBaseLoader, PyPDFLoader
-from langchain.chains import create_extraction_chain, LLMChain, SimpleSequentialChain, load_summarize_chain
+from langchain.chains import create_extraction_chain, LLMChain, SimpleSequentialChain
+from langchain.chains.summarize import load_summarize_chain
 from langchain.indexes import VectorstoreIndexCreator
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import openai
